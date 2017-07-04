@@ -8,8 +8,11 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var homeView *views.View
-var contactView *views.View
+var (
+	homeView    *views.View
+	contactView *views.View
+	signupView  *views.View
+)
 
 func home(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
@@ -19,6 +22,11 @@ func home(w http.ResponseWriter, r *http.Request) {
 func contact(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	must(contactView.Render(w, nil))
+}
+
+func signup(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	must(signupView.Render(w, nil))
 }
 
 // A helper function that panics on any error
@@ -33,9 +41,12 @@ func main() {
 		"views/home.gohtml")
 	contactView = views.NewView("bootstrap",
 		"views/contact.gohtml")
+	signupView = views.NewView("bootstrap",
+		"views/signup.gohtml")
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", home)
 	r.HandleFunc("/contact", contact)
+	r.HandleFunc("/signup", signup)
 	http.ListenAndServe(":3000", r)
 }
