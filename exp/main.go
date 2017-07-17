@@ -28,6 +28,25 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println("Successfully connected!")
+	// The first version w/out the ID
+	_, err = db.Exec(`
+	  INSERT INTO users(name, email)
+	  VALUES($1, $2)`,
+		"Jon Calhoun", "jon@calhoun.io")
+	if err != nil {
+		panic(err)
+	}
+
+	// The second version that returns the ID
+	var id int
+	row := db.QueryRow(`
+		INSERT INTO users(name, email)
+		VALUES($1, $2) RETURNING id`,
+		"Jon2 Calhoun2", "jon2@calhoun2.io")
+	err = row.Scan(&id)
+	if err != nil {
+		panic(err)
+	}
+
 	db.Close()
 }
