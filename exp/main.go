@@ -30,6 +30,7 @@ func main() {
 		panic(err)
 	}
 	defer db.Close()
+	db.LogMode(true)
 
 	db.AutoMigrate(&User{})
 }
