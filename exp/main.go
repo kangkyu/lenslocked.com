@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
@@ -30,7 +32,25 @@ func main() {
 		panic(err)
 	}
 	defer db.Close()
-	db.LogMode(true)
 
 	db.AutoMigrate(&User{})
+
+	name, email := getInfo()
+	u := &User{
+		Name:  name,
+		Email: email,
+	}
+	if err = db.Create(u).Error; err != nil {
+		panic(err)
+	}
+	fmt.Printf("%+v\n", u)
+}
+
+func getInfo() (name, email string) {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Println("What is your name?")
+	name, _ = reader.ReadString('\n')
+	fmt.Println("What is your email?")
+	email, _ = reader.ReadString('\n')
+	return name, email
 }
