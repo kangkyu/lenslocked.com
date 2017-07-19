@@ -1,10 +1,7 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"os"
-	"strings"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
@@ -34,27 +31,40 @@ func main() {
 	}
 	defer db.Close()
 	db.LogMode(true)
-
 	db.AutoMigrate(&User{})
 
-	name, email := getInfo()
-	u := &User{
-		Name:  name,
-		Email: email,
+	// Get the first user in the DB
+	// GORM typically sorts these by ID
+	var u User
+	db.First(&u)
+	if db.Error != nil {
+		panic(db.Error)
 	}
-	if err = db.Create(u).Error; err != nil {
-		panic(err)
-	}
-	fmt.Printf("%+v\n", u)
-}
+	fmt.Println(u)
 
-func getInfo() (name, email string) {
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("What is your name?")
-	name, _ = reader.ReadString('\n')
-	name = strings.TrimSpace(name)
-	fmt.Println("What is your email?")
-	email, _ = reader.ReadString('\n')
-	email = strings.TrimSpace(email)
-	return name, email
+	// Query by ID
+	id := 1
+	db.First(&u, id)
+	if db.Error != nil {
+		panic(db.Error)
+	}
+	fmt.Println(u)
+
+	// Query by <= and get the first result even if there are
+	// multiple
+	maxId := 3
+	db.Where("id <= ?", maxId).First(&u)
+	if db.Error != nil {
+		panic(db.Error)
+	}
+	fmt.Println(u)
+
+	// Query by user object
+	var u2 User
+	u2.Email = "jon@calhoun.io"
+	db.Where(u2).First(&u2)
+	if db.Error != nil {
+		panic(db.Error)
+	}
+	fmt.Println(u2)
 }
