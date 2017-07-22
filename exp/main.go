@@ -33,38 +33,11 @@ func main() {
 	db.LogMode(true)
 	db.AutoMigrate(&User{})
 
-	// Get the first user in the DB
-	// GORM typically sorts these by ID
-	var u User
-	db.First(&u)
+	var users []User
+	db.Find(&users)
 	if db.Error != nil {
 		panic(db.Error)
 	}
-	fmt.Println(u)
-
-	// Query by ID
-	id := 1
-	db.First(&u, id)
-	if db.Error != nil {
-		panic(db.Error)
-	}
-	fmt.Println(u)
-
-	// Query by <= and get the first result even if there are
-	// multiple
-	maxId := 3
-	db.Where("id <= ?", maxId).First(&u)
-	if db.Error != nil {
-		panic(db.Error)
-	}
-	fmt.Println(u)
-
-	// Query by user object
-	var u2 User
-	u2.Email = "jon@calhoun.io"
-	db.Where(u2).First(&u2)
-	if db.Error != nil {
-		panic(db.Error)
-	}
-	fmt.Println(u2)
+	fmt.Println("Retrieved", len(users), "users.")
+	fmt.Println(users)
 }
