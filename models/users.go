@@ -26,7 +26,7 @@ func NewUserService(connectionInfo string) (*UserService, error) {
 	if err != nil {
 		return nil, err
 	}
-	db.LogMode(true)
+	// db.LogMode(true)
 	return &UserService{
 		db: db,
 	}, nil
@@ -55,4 +55,9 @@ func (us *UserService) ByID(id uint) (*User, error) {
 	default:
 		return nil, err
 	}
+}
+
+// create the provided user and backfill data
+func (us *UserService) Create(user *User) error {
+	return us.db.Create(user).Error
 }
