@@ -25,7 +25,9 @@ func main() {
 		panic(err)
 	}
 	defer us.Close()
-	us.DestructiveReset()
+	if err := us.DestructiveReset(); err != nil {
+		panic(err)
+	}
 
 	user := models.User{
 		Name: "Mike Palmer",
@@ -40,4 +42,17 @@ func main() {
 		panic(err)
 	}
 	fmt.Println(foundUser)
+
+	user.Name = "Updated Name"
+	if err := us.Update(&user); err != nil {
+		panic(err)
+	}
+
+	if err := us.Delete(foundUser.ID); err != nil {
+		panic(err)
+	}
+	_, err = us.ByID(foundUser.ID)
+	if err != models.ErrNotFound {
+		panic("user was not deleted!")
+	}
 }
