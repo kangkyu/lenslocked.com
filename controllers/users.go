@@ -5,16 +5,19 @@ import (
 	"net/http"
 
 	"lenslocked.com/views"
+	"lenslocked.com/models"
 )
 
-func NewUsers() *Users {
+func NewUsers(us *models.UserService) *Users {
 	return &Users{
 		NewView: views.NewView("bootstrap", "users/new"),
+		us: us,
 	}
 }
 
 type Users struct {
 	NewView *views.View
+	us *models.UserService
 }
 
 // New is used to render the form where a user can
