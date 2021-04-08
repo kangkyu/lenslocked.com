@@ -22,6 +22,29 @@ type Users struct {
 	us *models.UserService
 }
 
+type LoginForm struct {
+	Email    string `schema:"email"`
+	Password string `schema:"password"`
+}
+
+func (u *Users) Login(w http.ResponseWriter, r *http.Request) {
+	var form LoginForm
+	if err := parseForm(r, &form); err != nil {
+		panic(err)
+	}
+	user, err := u.us.Authenticate(form.Email, form.Password)
+	switch err {
+	case models.ErrNotFound:
+		fmt.Fprintln(w, "Invalid email address")
+	case models.ErrInvalidPassword:
+		fmt.Fprintln(w, "Invalid password provided")
+	case nil:
+		fmt.Fprintln(w, "Email is", user.Email)
+	default:
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
 // New is used to render the form where a user can
 // create a new user account.
 //
