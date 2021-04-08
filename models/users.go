@@ -80,9 +80,12 @@ func (us *UserService) ByEmail(email string) (*User, error) {
 	return &user, nil
 }
 
+var userPwPepper = "secret-random-string-dev"
+
 // create the provided user and backfill data
 func (us *UserService) Create(user *User) error {
-	hashBytes, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	pwBytes := []byte(user.Password + userPwPepper)
+	hashBytes, err := bcrypt.GenerateFromPassword(pwBytes, bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
