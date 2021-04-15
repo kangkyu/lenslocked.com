@@ -6,6 +6,7 @@ import (
 
 	"lenslocked.com/views"
 	"lenslocked.com/models"
+	"lenslocked.com/rand"
 )
 
 func NewUsers(us *models.UserService) *Users {
@@ -27,6 +28,7 @@ type LoginForm struct {
 	Password string `schema:"password"`
 }
 
+// POST /login
 func (u *Users) Login(w http.ResponseWriter, r *http.Request) {
 	var form LoginForm
 	if err := parseForm(r, &form); err != nil {
@@ -43,7 +45,7 @@ func (u *Users) Login(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
-	err = signIn(w, user)
+	err = u.signIn(w, user)
 	if err != nil {
 		// temporary for debugging
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -86,7 +88,7 @@ func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	err := signIn(w, &user)
+	err := u.signIn(w, &user)
 	if err != nil {
 		// temporary for debugging
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -95,20 +97,37 @@ func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/cookietest", http.StatusFound)
 }
 
-func signIn(w http.ResponseWriter, user *models.User) error {
+func (u *Users) signIn(w http.ResponseWriter, user *models.User) error {
+	if user.Remember == "" {
+		token, err := rand.RememberToken()
+		if err != nil {
+			return err
+		}
+		user.Remember = token
+		err = u.us.Update(user)
+		if err != nil {
+			return err
+		}
+	}
 	cookie := http.Cookie{
-		Name: "email",
-		Value: user.Email,
+		Name: "remember_token",
+		Value: user.Remember,
 	}
 	http.SetCookie(w, &cookie)
 	return nil
 }
 
+// GET /cookietest
 func (u *Users) CookieTest(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("email")
+	cookie, err := r.Cookie("remember_token")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	fmt.Fprintln(w, cookie.Value)
+	user, err := u.us.ByRemember(cookie.Value)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	fmt.Fprintln(w, user)
 }
