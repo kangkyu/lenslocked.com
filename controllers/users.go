@@ -43,12 +43,13 @@ func (u *Users) Login(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
-	cookie := http.Cookie{
-		Name: "email",
-		Value: user.Email,
+	err = signIn(w, user)
+	if err != nil {
+		// temporary for debugging
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
-	http.SetCookie(w, &cookie)
-	fmt.Fprintln(w, "Email is", user.Email)
+	http.Redirect(w, r, "/cookietest", http.StatusFound)
 }
 
 // New is used to render the form where a user can
@@ -85,8 +86,22 @@ func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	fmt.Fprintln(w, "Name is", form.Name)
-	fmt.Fprintln(w, "Email is", form.Email)
+	err := signIn(w, &user)
+	if err != nil {
+		// temporary for debugging
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/cookietest", http.StatusFound)
+}
+
+func signIn(w http.ResponseWriter, user *models.User) error {
+	cookie := http.Cookie{
+		Name: "email",
+		Value: user.Email,
+	}
+	http.SetCookie(w, &cookie)
+	return nil
 }
 
 func (u *Users) CookieTest(w http.ResponseWriter, r *http.Request) {
